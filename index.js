@@ -22,39 +22,39 @@ app.get("/", function (req, res) {
 // your first API endpoint... 
 app.get("/api/:date", function (req, res) {
 	let date = req.params.date;	
-	const newDate = new Date(date);
-	// const unixDate = new Date(date);
 
-	if (date.length <= 10) {
-	console.log("date: " + date);
-	let unix = newDate.getTime();
-	console.log("unix: " + unix);
-	let utc = newDate.toGMTString();	
-	console.log(`"utc: "${utc}`);
-  res.json({unix, utc});
+	function convertDateParam (str) {
+		let strDate = new Date(str).valueOf();	
+		if (isNaN(strDate)) {
+			return +str;
+		}	
+		return strDate;
+	}
+	
+	const convertDate = convertDateParam(date);
+	
+	if (!isNaN(convertDate)) {
+		try {
+			let unix = convertDate;
+			let utc = new Date(convertDate).toUTCString();	
+			res.json({ unix, utc });
+		} catch (error) {
+			res.json({ error : "Invalid Date" });
+		}	
 	} else {
-		console.log(date);
-		console.log(typeof date);
-		date = parseInt(date);
-		console.log(typeof date);
-		let convertUnix = date * 1000;
-		let unixDates = new Date(convertUnix);
-		console.log(new Date(date));
-		console.log(unixDates);
-		let utc = unixDates.toGMTString();
-		console.log(`"utc: "${utc}`);
-		res.json({"unix" : parseInt(date), utc });
-	};
+		res.json({ error : "Invalid Date" });
+	}
 });
 
 app.get("/api/", function (req, res) {
-	let date = new Date();
-	let unix = date.getTime();
-	// let utc = date.toGMTString();	
-	res.json({unix});
-
+	try {
+		let unix = Date.now();
+		let utc = new Date(unix).toUTCString();		
+		res.json({ unix, utc });		
+	} catch (error) {
+		res.json({ error : "Invalid Date" });
+	}		
 });
-
 
 // listen for requests :)
 var listener = app.listen(process.env.PORT, function () {
